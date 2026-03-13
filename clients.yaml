@@ -1,0 +1,13 @@
+superbench:
+  name: "Superbench"
+  chatwoot:
+    base_url: "https://app.chatwoot.com"
+    account_id: 1
+    webhook_secret: "${SUPERBENCH_CHATWOOT_WEBHOOK_SECRET}"
+  meta:
+    pixel_id: "${SUPERBENCH_META_PIXEL_ID}"
+    access_token: "${SUPERBENCH_META_ACCESS_TOKEN}"
+    event_name: "Lead"  # "Lead", "Purchase", or any Meta standard/custom event
+  trigger_labels:
+    - "confirmed"
+    - "appointment booked"
