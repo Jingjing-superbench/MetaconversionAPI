@@ -64,15 +64,19 @@ def load_config(yaml_path=None):
 
     _clients = {}
     for client_id, config in resolved.items():
-        # Lowercase trigger labels for case-insensitive matching
-        labels = config.get("trigger_labels", [])
-        config["trigger_labels"] = [l.lower() for l in labels]
+        # Normalize trigger_labels to dict format {label: event_name}
+        # Supports both formats:
+        #   list: ["confirmed", "sold"]  -> all map to default "Lead"
+        #   dict: {"appt-booked": "Lead", "sold": "Purchase"}
+        labels = config.get("trigger_labels", {})
+        if isinstance(labels, list):
+            config["trigger_labels"] = {l.lower(): "Lead" for l in labels}
+        elif isinstance(labels, dict):
+            config["trigger_labels"] = {k.lower(): v for k, v in labels.items()}
+        else:
+            config["trigger_labels"] = {}
 
-        # Default event_name to "Lead"
-        meta = config.get("meta", {})
-        if not meta.get("event_name"):
-            meta["event_name"] = "Lead"
-        config["meta"] = meta
+        config.setdefault("meta", {})
 
         if _validate_client(client_id, config):
             _clients[client_id] = config

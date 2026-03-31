@@ -1,13 +1,14 @@
 superbench:
   name: "Superbench"
   chatwoot:
-    base_url: "https://app.chatwoot.com"
-    account_id: 1
+    base_url: "https://chat.superbench.ai"
+    account_id: 2
     webhook_secret: "${SUPERBENCH_CHATWOOT_WEBHOOK_SECRET}"
   meta:
     pixel_id: "${SUPERBENCH_META_PIXEL_ID}"
     access_token: "${SUPERBENCH_META_ACCESS_TOKEN}"
-    event_name: "Lead"  # "Lead", "Purchase", or any Meta standard/custom event
+  # Map each trigger label to a Meta event name.
+  # When a label is added to a conversation, the corresponding event fires.
   trigger_labels:
-    - "confirmed"
-    - "appointment booked"
+    appt-booked: "Lead"
+    sold: "Purchase"

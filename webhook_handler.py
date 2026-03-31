@@ -92,12 +92,17 @@ def extract_contact_info(payload):
 def find_matching_trigger(added_labels, trigger_labels):
     """Case-insensitive match of added labels against trigger labels.
 
-    Returns the first matching label or None.
+    Args:
+        added_labels: List of newly added labels (lowercased).
+        trigger_labels: Dict mapping label -> Meta event name,
+                        e.g. {"appt-booked": "Lead", "sold": "Purchase"}
+
+    Returns (matched_label, event_name) tuple or (None, None).
     """
     for label in added_labels:
         if label.lower() in trigger_labels:
-            return label
-    return None
+            return label, trigger_labels[label.lower()]
+    return None, None
 
 
 def process_webhook(client_id, payload, client_config):
@@ -119,12 +124,12 @@ def process_webhook(client_id, payload, client_config):
         return {"status": "skipped", "detail": "No labels added"}
 
     # Check if any added label matches trigger labels
-    trigger_labels = client_config.get("trigger_labels", [])
-    matched_label = find_matching_trigger(added_labels, trigger_labels)
+    trigger_labels = client_config.get("trigger_labels", {})
+    matched_label, event_name = find_matching_trigger(added_labels, trigger_labels)
     if not matched_label:
         return {
             "status": "skipped",
-            "detail": f"No trigger match. Added: {added_labels}, Triggers: {trigger_labels}",
+            "detail": f"No trigger match. Added: {added_labels}, Triggers: {list(trigger_labels.keys())}",
         }
 
     # Deduplication
@@ -159,7 +164,6 @@ def process_webhook(client_id, payload, client_config):
 
     # Send to Meta CAPI
     meta_config = client_config["meta"]
-    event_name = meta_config.get("event_name", "Lead")
     event_id = f"{client_id}_{conversation_id}_{event_name}_{int(time.time())}"
 
     try:
