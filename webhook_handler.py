@@ -123,6 +123,36 @@ def process_webhook(client_id, payload, client_config):
     if not added_labels:
         return {"status": "skipped", "detail": "No labels added"}
 
+    # Check source label filter (e.g. only process "meta_ads" conversations)
+    source_label = client_config.get("source_label")
+    if source_label:
+        # Get ALL current labels on the conversation (not just added ones)
+        current_labels = set()
+        changed = payload.get("changed_attributes", {})
+        if isinstance(changed, dict):
+            labels_change = changed.get("labels", {})
+            current_labels = set(
+                l.lower() for l in (labels_change.get("current_value") or [])
+            )
+        elif isinstance(changed, list):
+            for attr in changed:
+                if "labels" in attr:
+                    current_labels = set(
+                        l.lower() for l in (attr["labels"].get("current_value") or [])
+                    )
+                    break
+        # Also check top-level labels field
+        if not current_labels:
+            current_labels = set(
+                l.lower() for l in (payload.get("labels") or [])
+            )
+
+        if source_label.lower() not in current_labels:
+            return {
+                "status": "skipped",
+                "detail": f"Missing source label '{source_label}'. Current: {current_labels}",
+            }
+
     # Check if any added label matches trigger labels
     trigger_labels = client_config.get("trigger_labels", {})
     matched_label, event_name = find_matching_trigger(added_labels, trigger_labels)

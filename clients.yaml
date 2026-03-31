@@ -7,6 +7,8 @@ superbench:
   meta:
     pixel_id: "${SUPERBENCH_META_PIXEL_ID}"
     access_token: "${SUPERBENCH_META_ACCESS_TOKEN}"
+  # Only fire events for conversations with this label (e.g. ignore tiktok leads)
+  source_label: "meta_ads"
   # Map each trigger label to a Meta event name.
   # When a label is added to a conversation, the corresponding event fires.
   trigger_labels:
